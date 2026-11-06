@@ -9,6 +9,8 @@ charset-normalizer==3.4.2
 click==8.2.1
 colorama==0.4.6
 fastapi==0.115.13
+httpx==0.28.1
+python-dotenv==1.1.1
 gitdb==4.0.12
 GitPython==3.1.44
 h11==0.16.0
@@ -34,6 +36,7 @@ referencing==0.36.2
 requests==2.32.4
 rpds-py==0.25.1
 scikit-learn==1.7.0
+SQLAlchemy==2.0.41
 scipy==1.16.0
 six==1.17.0
 smmap==5.0.2

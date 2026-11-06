@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 import joblib
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error, r2_score
@@ -17,7 +19,11 @@ def train_pipeline():
     and save the final artifacts.
     """
     # --- 1. Load and Process Data ---
-    df = load_and_engineer_features('../data/raw/vietnam_housing_dataset.csv')
+    project_root = Path(__file__).resolve().parents[1]
+    data_path = project_root / 'Data' / 'Raw' / 'vietnam_housing_dataset.csv'
+    models_dir = project_root / 'models'
+    models_dir.mkdir(exist_ok=True)
+    df = load_and_engineer_features(str(data_path))
 
     # --- 2. Define Features (X) and Target (y) ---
     X = df.drop(columns=['Price'])
@@ -48,8 +54,14 @@ def train_pipeline():
     # The preprocessor is defined but will be part of the final pipeline
     preprocessor = ColumnTransformer(
         transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_features),
-            ('num', StandardScaler(), numeric_features)
+            ('cat', Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='constant', fill_value='Unknown')),
+                ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+            ]), categorical_features),
+            ('num', Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='median')),
+                ('scaler', StandardScaler())
+            ]), numeric_features)
         ],
         remainder='drop'
     )
@@ -108,8 +120,8 @@ def train_pipeline():
 
     # --- 9. Save the Pipeline and Preprocessor ---
     print("\nSaving the trained model pipeline and preprocessor...")
-    joblib.dump(model_pipeline, '../models/xgboost_pipeline.pkl')
-    joblib.dump(model_pipeline.named_steps['preprocessor'], '../models/preprocessor.pkl')
+    joblib.dump(model_pipeline, models_dir / 'xgboost_pipeline.pkl')
+    joblib.dump(model_pipeline.named_steps['preprocessor'], models_dir / 'preprocessor.pkl')
     
     print("\nTraining complete. Artifacts saved in 'models/' directory.")
 
